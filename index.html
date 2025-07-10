@@ -2,44 +2,100 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Countdown</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supercharger</title>
   <style>
     body {
-      background-color: #0e0e0e;
-      color: #eeeeee;
-      font-family: 'Orbitron', sans-serif;
-      text-align: center;
-      margin-top: 20%;
+      margin: 0;
+      background-color: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+      font-family: sans-serif;
     }
-    h1 { font-size: 3em; }
-    #countdown { font-size: 2em; color: #a926ff; }
+
+    .container {
+      text-align: center;
+    }
+
+    #wheel {
+      width: 400px;
+      height: 400px;
+      background-image: url('9b949b7f-5195-4cee-bf59-18f04fcc231e.png');
+      background-size: cover;
+      border-radius: 50%;
+      transition: transform 5s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #cooldown {
+      margin-top: 10px;
+      font-size: 1rem;
+      color: #aaa;
+    }
   </style>
 </head>
 <body>
-  <h1>WELCOME TO HEX CORP'S HeXaNOVA</h1>
-  <p id="countdown">Awaiting Protocol...</p>
+  <div class="container">
+    <div id="wheel"></div>
+    <button id="spinBtn">Spin Supercharger</button>
+    <div id="cooldown"></div>
+  </div>
 
   <script>
-    const targetDate = new Date("2025-04-20T20:00:00").getTime();
-    const countdown = document.getElementById("countdown");
+    const wheel = document.getElementById('wheel');
+    const spinBtn = document.getElementById('spinBtn');
+    const cooldownText = document.getElementById('cooldown');
 
-    const x = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = targetDate - now;
+    const COOLDOWN_HOURS = 2;
+    const COOLDOWN_KEY = 'lastSpinTime';
 
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    function getRemainingTime() {
+      const lastSpin = localStorage.getItem(COOLDOWN_KEY);
+      if (!lastSpin) return 0;
 
-      countdown.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      const lastSpinDate = new Date(parseInt(lastSpin));
+      const now = new Date();
+      const diff = now - lastSpinDate;
+      const msCooldown = COOLDOWN_HOURS * 60 * 60 * 1000;
 
-      if (distance < 0) {
-        clearInterval(x);
-        countdown.innerHTML = "TRANSMISSION BEGINS...";
+      return Math.max(0, msCooldown - diff);
+    }
+
+    function updateCooldownDisplay() {
+      const timeLeft = getRemainingTime();
+      if (timeLeft > 0) {
+        const minutes = Math.floor(timeLeft / 60000);
+        const seconds = Math.floor((timeLeft % 60000) / 1000);
+        cooldownText.textContent = `Come back in ${minutes}m ${seconds}s.`;
+        spinBtn.disabled = true;
+      } else {
+        cooldownText.textContent = 'Ready to spin!';
+        spinBtn.disabled = false;
       }
-    }, 1000);
+    }
+
+    spinBtn.addEventListener('click', () => {
+      const randomDeg = 3600 + Math.floor(Math.random() * 360); // Random extra spin
+      wheel.style.transform = `rotate(${randomDeg}deg)`;
+      localStorage.setItem(COOLDOWN_KEY, Date.now().toString());
+      updateCooldownDisplay();
+    });
+
+    setInterval(updateCooldownDisplay, 1000);
+    updateCooldownDisplay();
   </script>
 </body>
 </html>
